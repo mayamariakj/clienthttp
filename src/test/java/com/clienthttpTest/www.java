@@ -1,12 +1,38 @@
 package com.clienthttpTest;
 
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.io.IOException;
+import java.net.Socket;
 
 public class www {
-    @Test
-    void mathShouldWork(){
-        assertEquals(4, 2+2);
+
+    private final String host;
+    private String requestTarget;
+
+    public www(String host, String requestTarget) {
+        this.host = host;
+        this.requestTarget = requestTarget;
     }
+
+    public static void main(String[] args) throws IOException {
+        new www("urlecho.appspot.com", "/echo?status=200&Content-Type=text%2Fhtml&body=Hello%20world!").executeRequest();
+    }
+
+    public WwwClientResponse executeRequest() throws IOException {
+        try (Socket socket = new Socket(host, 80)) {
+
+            socket.getOutputStream().write(("GET " + requestTarget + " HTTP/1.1\r\n").getBytes());
+            socket.getOutputStream().write(("Host: " + host + "\r\n").getBytes());
+            socket.getOutputStream().write("connection: close\r\n".getBytes());
+            socket.getOutputStream().write("\n\r".getBytes());
+            socket.getOutputStream().flush();
+
+            WwwClientResponse wwwClientResponse = new WwwClientResponse(socket);
+            wwwClientResponse.invoke();
+            return wwwClientResponse;
+
+
+            /*new WwwClientResponse(socket).invoke();*/
+        }
+    }
+
 }
